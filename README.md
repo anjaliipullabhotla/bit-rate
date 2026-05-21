@@ -10,59 +10,18 @@ A 60-second human-speed benchmark built to maximize **Bit Rate (B)** under the S
 ./run.sh
 ```
 
-This launches a Python HTTP server on `localhost:8000` and opens the app in your default browser automatically.
-
-**Manual launch:**
-
-```bash
-python3 -m http.server 8000
-# then open http://localhost:8000
-```
+Launches a Python HTTP server on `localhost:8000` and opens the app automatically.
 
 ---
 
 ## How to Play
 
-1. The screen shows a vertical stack of 4 blocks. The **large glowing bottom block** is your active target.
-2. Each block displays a 2-arrow sequence (e.g., `↑ →`).
-3. Type the two arrows in order using your keyboard arrow keys.
-4. On a correct sequence: the block clears instantly and the stack drops.
-5. On any wrong key: the block flashes red, your input resets, and `Si` increments.
-6. The 3 preview blocks above let you pre-read upcoming patterns.
-7. Press **SPACE** to start. The timer counts down from 60 seconds.
-8. When time expires, your final Bit Rate score is displayed.
-
----
-
-## Design Rationale
-
-### Why N = 16?
-
-| Layout                       | N            | bits/selection | Notes                                                    |
-| ---------------------------- | ------------ | -------------- | -------------------------------------------------------- |
-| 4 single keys                | 4            | 1.58           | Too sparse — low information density                    |
-| **2-key arrow combos** | **16** | **3.91** | **Optimal throughput/cognitive-load balance**      |
-| 3-key arrow combos           | 64           | 5.98           | High bits but severe cognitive delay + error propagation |
-
-The formula is:
-
-```
-B = log2(N-1) × max(Sc - Si, 0) / t
-```
-
-With N=16: `log2(15) ≈ 3.9068 bits` per correct selection. The 2-key sequence can be executed as a fast rolling finger motion (~80–120ms/combo for a practiced user), making it faster than a single keypress on an N=128 layout that requires visual search.
-
-### Why Static Stack, Not Falling Objects?
-
-Traditional rhythm games force players to **wait** for a target to arrive. That introduces a hard ceiling on throughput that has nothing to do with motor speed. ComboStack advances exclusively at the pace of the user's hands — the moment the second correct key is pressed, the next target is already waiting.
-
-### Error Penalty
-
-An incorrect key press increments `Si` and resets the input buffer. This prevents button-mashing strategies (e.g., pressing all 4 arrows rapidly) from inflating `Sc`. The net throughput term `max(Sc - Si, 0)` means errors are directly destructive, so the optimal strategy is deliberate accuracy over reckless speed.
-
-### Pre-Buffer Previews
-
-The 3 muted blocks above the active target allow fast players (Calvin, 200+ WPM) to pipeline: while executing the current sequence their eyes have already parsed the next 1–3. This eliminates inter-trial cognitive latency at high speed.
+1. A row of blocks appears. The **large glowing block** is your active target.
+2. Each block shows a 2-letter sequence (e.g., `K Q`). Type the letters in order.
+3. Correct: block clears instantly, next target appears.
+4. Wrong key: block flashes red, input resets, `Si` increments.
+5. Three smaller preview blocks to the right let you read ahead.
+6. Press **SPACE** to start. **T** to run test mode (downloads CSV).
 
 ---
 
@@ -71,63 +30,43 @@ The 3 muted blocks above the active target allow fast players (Calvin, 200+ WPM)
 ```
 B = log2(N - 1) × max(Sc - Si, 0) / t
 
-N  = 16   (4 arrows × 2-key sequences = 4² = 16 unique combos)
-t  = 60 s (fixed evaluation window)
+N  = 676  (26² two-letter sequences)
+t  = 60 s
 Sc = correct selections
 Si = incorrect selections
 ```
 
-**Theoretical ceiling estimate:** At 2 keys per selection and ~100ms per keypress (achievable by a 200 WPM typist), a player could complete ~300 selections in 60s with perfect accuracy: `3.9068 × 300 / 60 ≈ 19.5 bps`. Real scores will vary based on accuracy and reading speed.
-
 ---
+
+## Design Choices
+
+### Input Modality — Keyboard Letters
+
+The keyboard was chosen as the input modality because it is the high-bandwidth familiar to most everyone.  This minimizes the bottleneck between perception and execution.
+
+Arrow keys, number rows, and home-row subsets (ASDF + JKL;) were also tested. Letters outperformed all of them in practice — likely because the full alphabet benefits from years of overlearned motor programs that number or arrow layouts do not share.
+
+### Why N = 676 
+
+Since, increasing N only results in a logarithmic increase in bit rate, whereas increasing S_c results in a linear increase in bit rate, the task required finding an optimal N such that plenty of information is encoded in a single selection without compromising accuracy/reaction time.
+
+We tested configurations ranging from N = 4 to N = 3844:
+
+| Config                       | N             | bits/sel       | Notes                                                                                         |
+| ---------------------------- | ------------- | -------------- | --------------------------------------------------------------------------------------------- |
+| 4 keys, len 1                | 4             | 1.58           | Low complexity/high accuracy, low information transmission, low performance                   |
+| 4 keys, len 2                | 16            | 3.91           | Low complexity/high accuracy, low information transmission, low performance                   |
+| 26 keys, len 1               | 26            | 4.64           | Low complexity/high accuracy medium information transmission, solid performance              |
+| **26 keys, len 2**     | **676** | **9.40** | **Medium complexity/high accuracy, high information transmittion, highest performance** |
+| 52 keys (a–Z), len 2        | 2704          | 11.40          | High complexity/medium accuracy, high information transmission, medium performance            |
+| 62 keys (a–Z + 0–9), len 2 | 3844          | 11.91          | High complexity/lwo accuracy, high information transmission, medium performance              |
+
+The 26-letter length-2 configuration produced the highest measured bit rate. The test was given to three people (Dana -- Emma, Chris -- Steven, and Irina -- Alice) who all performed best on two letter sequences. See **test mode** (press T from the start screen) to reproduce this comparison: the game cycles through all configurations in random order and exports results as a CSV.
 
 ## Architecture
 
-| File           | Purpose                                                                 |
-| -------------- | ----------------------------------------------------------------------- |
-| `index.html` | Layout, CSS, and all visual styling. Zero framework dependencies.       |
-| `script.js`  | Game state machine, input handling, bit rate calculation, canvas chart. |
-| `run.sh`     | One-command launcher: Python HTTP server + auto browser open.           |
-| `README.md`  | This file.                                                              |
-
-No build tools, no npm, no bundler. Open in any modern browser.
-
----
-
-## Testing Checklist
-
-### Functional Tests
-
-- [ ] **Start screen** appears on load with "Press SPACE to start" prompt.
-- [ ] **SPACE** transitions to running state and starts 60s countdown.
-- [ ] **Arrow keys** do not scroll the page (default prevented).
-- [ ] Correct first key **highlights** the first arrow in the active block blue.
-- [ ] Correct second key triggers **green flash**, block clears, stack drops.
-- [ ] Wrong key at any position triggers **red flash + shake**, resets buffer, increments `Si`.
-- [ ] `Sc` and `Si` counters update immediately after each event.
-- [ ] **Bit Rate** (bps) display updates every 50ms.
-- [ ] **Canvas chart** adds a new data point each second.
-- [ ] Timer turns **red** when ≤ 10 seconds remain.
-- [ ] At t=0: all arrow key input is **locked out** (pressing keys does nothing).
-- [ ] **Score screen** shows correct `Sc`, `Si`, net selections, accuracy, and final bps.
-- [ ] Pressing **SPACE** on the score screen restarts the game and resets all counters.
-- [ ] Restarting clears the canvas chart history.
-
-### Edge Cases
-
-- [ ] Holding an arrow key down does not register multiple inputs for one physical press — standard `keydown` behavior (OS key repeat may fire; this is acceptable and consistent across users).
-- [ ] `Sc - Si < 0` clamps to 0 (bps never goes negative).
-- [ ] First selection at `elapsed ≈ 0` does not cause divide-by-zero (guarded by `elapsed <= 0` check).
-- [ ] Resizing the browser window redraws the canvas without artifacts.
-
-### Performance Tests (for Calvin)
-
-- [ ] Rapid alternating arrow presses (simulating 200 WPM) do not drop inputs or cause visual lag.
-- [ ] Stack drop animation (90ms) completes cleanly before the next input is processed.
-- [ ] No visible frame drops during sustained high-speed play.
-
-### Cross-Browser
-
-- [ ] Chrome / Chromium
-- [ ] Firefox
-- [ ] Safari (macOS)
+| File           | Purpose                                                          |
+| -------------- | ---------------------------------------------------------------- |
+| `index.html` | Layout, CSS, all visual styling. Zero dependencies.              |
+| `script.js`  | Game state machine, input handling, bit rate calculation, chart. |
+| `run.sh`     | Python HTTP server + auto browser open.                          |

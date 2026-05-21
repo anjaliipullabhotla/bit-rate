@@ -2,88 +2,88 @@
 
 // ── TEST CONFIGURATIONS ────────────────────────────────────────────────────────
 const TEST_CONFIGS = [
-  // {
-  //   label:      'Arrows ↑↓←→',
-  //   SEQ_LENGTH: 2,
-  //   KEY_MAP:    { 'ArrowUp':'↑','ArrowDown':'↓','ArrowLeft':'←','ArrowRight':'→' },
-  //   DIR_CLASS:  { '↑':'dir-up','↓':'dir-down','←':'dir-left','→':'dir-right' },
-  // },
-  // {
-  //   label:      '0 – 9',
-  //   SEQ_LENGTH: 2,
-  //   KEY_MAP:    { '0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9' },
-  //   DIR_CLASS:  { '0':'dir-0','1':'dir-1','2':'dir-2','3':'dir-3','4':'dir-4','5':'dir-5','6':'dir-6','7':'dir-7','8':'dir-8','9':'dir-9' },
-  // },
-  // {
-  //   label:      'ASDF + JKL;',
-  //   SEQ_LENGTH: 2,
-  //   KEY_MAP:    { 'a':'A','s':'S','d':'D','f':'F','j':'J','k':'K','l':'L',';':';' },
-  //   DIR_CLASS:  { 'A':'dir-a','S':'dir-s','D':'dir-d','F':'dir-f','J':'dir-j','K':'dir-k','L':'dir-l',';':'dir-semi' },
-  // },
-  // {
-  //   label:      '1 – 4',
-  //   SEQ_LENGTH: 2,
-  //   KEY_MAP:    { '1':'1','2':'2','3':'3','4':'4' },
-  //   DIR_CLASS:  { '1':'dir-1','2':'dir-2','3':'dir-3','4':'dir-4' },
-  // },
-  // {
-  //   label:      '1 – 4 (×3)',
-  //   SEQ_LENGTH: 3,
-  //   KEY_MAP:    { '1':'1','2':'2','3':'3','4':'4' },
-  //   DIR_CLASS:  { '1':'dir-1','2':'dir-2','3':'dir-3','4':'dir-4' },
-  // },
-  // {
-  //   label:      '1 – 4',
-  //   SEQ_LENGTH: 1,
-  //   KEY_MAP:    { '1':'1','2':'2','3':'3','4':'4' },
-  //   DIR_CLASS:  { '1':'dir-1','2':'dir-2','3':'dir-3','4':'dir-4' },
-  // },
-  // {
-  //   label:      'A – Z (×1)',
-  //   SEQ_LENGTH: 1,
-  //   horizMode:  true,
-  //   KEY_MAP:    Object.fromEntries('abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c.toUpperCase()])),
-  //   DIR_CLASS:  Object.fromEntries('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, 'dir-letter'])),
-  // },
   {
-    label:      'A – Z (×2)',
+    label:      'a – z (×2)',
     SEQ_LENGTH: 2,
     horizMode:  true,
-    KEY_MAP:    Object.fromEntries('abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c.toUpperCase()])),
-    DIR_CLASS:  Object.fromEntries('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, 'dir-letter'])),
+    KEY_MAP:    Object.fromEntries('abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c])),
+    DIR_CLASS:  Object.fromEntries('abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, 'dir-letter'])),
   },
   {
-    label:      'A – Z (×3)',
+    label:      'Arrows ↑↓←→',
+    SEQ_LENGTH: 2,
+    KEY_MAP:    { 'ArrowUp':'↑','ArrowDown':'↓','ArrowLeft':'←','ArrowRight':'→' },
+    DIR_CLASS:  { '↑':'dir-up','↓':'dir-down','←':'dir-left','→':'dir-right' },
+  },
+  {
+    label:      '0 – 9',
+    SEQ_LENGTH: 2,
+    KEY_MAP:    { '0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9' },
+    DIR_CLASS:  { '0':'dir-0','1':'dir-1','2':'dir-2','3':'dir-3','4':'dir-4','5':'dir-5','6':'dir-6','7':'dir-7','8':'dir-8','9':'dir-9' },
+  },
+  {
+    label:      'ASDF + JKL;',
+    SEQ_LENGTH: 2,
+    KEY_MAP:    { 'a':'A','s':'S','d':'D','f':'F','j':'J','k':'K','l':'L',';':';' },
+    DIR_CLASS:  { 'A':'dir-a','S':'dir-s','D':'dir-d','F':'dir-f','J':'dir-j','K':'dir-k','L':'dir-l',';':'dir-semi' },
+  },
+  {
+    label:      '1 – 4',
+    SEQ_LENGTH: 2,
+    KEY_MAP:    { '1':'1','2':'2','3':'3','4':'4' },
+    DIR_CLASS:  { '1':'dir-1','2':'dir-2','3':'dir-3','4':'dir-4' },
+  },
+  {
+    label:      '1 – 4 (×3)',
+    SEQ_LENGTH: 3,
+    KEY_MAP:    { '1':'1','2':'2','3':'3','4':'4' },
+    DIR_CLASS:  { '1':'dir-1','2':'dir-2','3':'dir-3','4':'dir-4' },
+  },
+  {
+    label:      '1 – 4 (×1)',
+    SEQ_LENGTH: 1,
+    KEY_MAP:    { '1':'1','2':'2','3':'3','4':'4' },
+    DIR_CLASS:  { '1':'dir-1','2':'dir-2','3':'dir-3','4':'dir-4' },
+  },
+  {
+    label:      'a – z (×1)',
+    SEQ_LENGTH: 1,
+    horizMode:  true,
+    KEY_MAP:    Object.fromEntries('abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c])),
+    DIR_CLASS:  Object.fromEntries('abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, 'dir-letter'])),
+  },
+  {
+    label:      'a – z (×3)',
     SEQ_LENGTH: 3,
     horizMode:  true,
-    KEY_MAP:    Object.fromEntries('abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c.toUpperCase()])),
-    DIR_CLASS:  Object.fromEntries('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, 'dir-letter'])),
+    KEY_MAP:    Object.fromEntries('abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c])),
+    DIR_CLASS:  Object.fromEntries('abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, 'dir-letter'])),
   },
-  // {
-  //   label:      'a-Z (×2)',
-  //   SEQ_LENGTH: 2,
-  //   horizMode:  true,
-  //   KEY_MAP:    Object.fromEntries([
-  //     ...'abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c]),
-  //     ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, c]),
-  //   ]),
-  //   DIR_CLASS:  Object.fromEntries(
-  //     'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, 'dir-letter'])
-  //   ),
-  // },
-  // {
-  //   label:      'a-Z + 0-9 (×2)',
-  //   SEQ_LENGTH: 2,
-  //   horizMode:  true,
-  //   KEY_MAP:    Object.fromEntries([
-  //     ...'abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c]),
-  //     ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, c]),
-  //     ...'0123456789'.split('').map(c => [c, c]),
-  //   ]),
-  //   DIR_CLASS:  Object.fromEntries(
-  //     'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').map(c => [c, 'dir-letter'])
-  //   ),
-  // },
+  {
+    label:      'a-Z (×2)',
+    SEQ_LENGTH: 2,
+    horizMode:  true,
+    KEY_MAP:    Object.fromEntries([
+      ...'abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c]),
+      ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, c]),
+    ]),
+    DIR_CLASS:  Object.fromEntries(
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, 'dir-letter'])
+    ),
+  },
+  {
+    label:      'a-Z + 0-9 (×2)',
+    SEQ_LENGTH: 2,
+    horizMode:  true,
+    KEY_MAP:    Object.fromEntries([
+      ...'abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c]),
+      ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, c]),
+      ...'0123456789'.split('').map(c => [c, c]),
+    ]),
+    DIR_CLASS:  Object.fromEntries(
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').map(c => [c, 'dir-letter'])
+    ),
+  },
 ];
 
 const DURATION   = 60;
@@ -96,6 +96,7 @@ let CONFIG, KEYS, KEY_DIR_CLASS, N, INFO_DENSITY;
 let testMode   = false;
 let testCfgIdx = 0;
 let testScores = [];
+let testOrder  = [];
 
 // ── GAME STATE ─────────────────────────────────────────────────────────────────
 let state = {
@@ -105,7 +106,6 @@ let state = {
   inputBuffer:    [],
   blockQueue:     [],
   bitRateHistory: [],
-  elapsedSeconds: 0,
 };
 
 // ── DOM REFERENCES ─────────────────────────────────────────────────────────────
@@ -118,7 +118,6 @@ const timerVal           = document.getElementById('timer-value');
 const scVal              = document.getElementById('sc-value');
 const siVal              = document.getElementById('si-value');
 const bpsVal             = document.getElementById('bps-value');
-const inputIndicator     = document.getElementById('input-indicator');
 const canvas             = document.getElementById('bitrate-canvas');
 const ctx                = canvas.getContext('2d');
 
@@ -141,12 +140,6 @@ function activateConfig(cfg) {
   CONFIG        = { DURATION, SEQ_LENGTH: cfg.SEQ_LENGTH, QUEUE_SIZE, KEY_MAP: cfg.KEY_MAP, horizMode: cfg.horizMode };
 
   stackCol.classList.toggle('horiz-mode', !!cfg.horizMode);
-  inputIndicator.innerHTML = '';
-  for (let i = 0; i < cfg.SEQ_LENGTH; i++) {
-    const dot = document.createElement('div');
-    dot.className = 'ind-key';
-    inputIndicator.appendChild(dot);
-  }
 
   document.getElementById('mode-info').textContent =
     `${cfg.label}  |  N=${N}  |  ~${INFO_DENSITY.toFixed(2)} bits/sel  |  60 s`;
@@ -210,10 +203,9 @@ function drawChart() {
   });
   ctx.stroke();
 
-  const last  = history[history.length - 1];
-  const lastX = padL + (last.t / DURATION) * plotW;
-  ctx.lineTo(lastX, padT + plotH);
-  ctx.lineTo(padL,  padT + plotH);
+  const last = history[history.length - 1];
+  ctx.lineTo(padL + (last.t / DURATION) * plotW, padT + plotH);
+  ctx.lineTo(padL, padT + plotH);
   ctx.closePath();
   const grad = ctx.createLinearGradient(0, padT, 0, padT + plotH);
   grad.addColorStop(0, 'rgba(255,214,0,0.25)');
@@ -263,6 +255,7 @@ function drawGrid(w, h, padL=38, padR=8, padT=8, padB=22, maxBps=1) {
 function renderStack() {
   stackCol.innerHTML = '';
   stackCol.classList.toggle('horiz-mode', !!CONFIG.horizMode);
+
   for (let i = QUEUE_SIZE - 1; i >= 1; i--) {
     const seq = state.blockQueue[i];
     if (!seq) continue;
@@ -270,7 +263,7 @@ function renderStack() {
     div.className = 'block preview';
     seq.forEach(sym => {
       const span = document.createElement('span');
-      span.className  = KEY_DIR_CLASS[sym];
+      span.className   = KEY_DIR_CLASS[sym];
       span.textContent = sym;
       div.appendChild(span);
     });
@@ -278,28 +271,18 @@ function renderStack() {
   }
 
   const active = state.blockQueue[0];
-  if (active) {
-    const div = document.createElement('div');
-    div.className = 'block active';
-    div.id = 'active-block';
-    active.forEach((sym, idx) => {
-      const span = document.createElement('span');
-      span.className = 'key ' + KEY_DIR_CLASS[sym] + (idx < state.inputBuffer.length ? ' hit' : '');
-      span.setAttribute('data-key-idx', idx);
-      span.textContent = sym;
-      div.appendChild(span);
-    });
-    stackCol.appendChild(div);
-  }
-}
-
-function updateInputIndicator() {
-  const dots = inputIndicator.querySelectorAll('.ind-key');
-  dots.forEach((dot, i) => {
-    const filled = i < state.inputBuffer.length;
-    dot.className    = 'ind-key' + (filled ? ' filled' : '');
-    dot.textContent  = filled ? state.inputBuffer[i] : '';
+  if (!active) return;
+  const div = document.createElement('div');
+  div.className = 'block active';
+  div.id = 'active-block';
+  active.forEach((sym, idx) => {
+    const span = document.createElement('span');
+    span.className   = 'key ' + KEY_DIR_CLASS[sym] + (idx < state.inputBuffer.length ? ' hit' : '');
+    span.setAttribute('data-key-idx', idx);
+    span.textContent = sym;
+    div.appendChild(span);
   });
+  stackCol.appendChild(div);
 }
 
 // ── GAME LOGIC ─────────────────────────────────────────────────────────────────
@@ -325,28 +308,22 @@ function handleKeyPress(key) {
 
   if (sym === expected) {
     state.inputBuffer.push(sym);
-    const block = document.getElementById('active-block');
-    if (block) {
-      const span = block.querySelector(`[data-key-idx="${state.inputBuffer.length - 1}"]`);
-      if (span) span.classList.add('hit');
-    }
-    updateInputIndicator();
+    const span = document.querySelector(`#active-block [data-key-idx="${state.inputBuffer.length - 1}"]`);
+    if (span) span.classList.add('hit');
 
     if (state.inputBuffer.length === active.length) {
       state.Sc++;
-      updateDashboard();
-
       state.blockQueue.shift();
       fillQueue();
       state.inputBuffer = [];
+      updateDashboard();
       renderStack();
-      updateInputIndicator();
     }
   } else {
     state.Si++;
     state.inputBuffer = [];
     updateDashboard();
-    flashActiveBlock('error', () => { renderStack(); updateInputIndicator(); });
+    flashActiveBlock('error', () => renderStack());
   }
 }
 
@@ -375,7 +352,6 @@ function startTick() {
 
   chartInterval = setInterval(() => {
     if (state.phase !== 'running') return;
-    state.elapsedSeconds++;
     const elapsed = (performance.now() - startTimestamp) / 1000;
     state.bitRateHistory.push({ t: elapsed, bps: calculateBitRate(elapsed) });
     drawChart();
@@ -386,11 +362,10 @@ function startTick() {
 function startGame() {
   state = {
     phase: 'running', timerRemaining: DURATION,
-    Sc: 0, Si: 0, inputBuffer: [], blockQueue: [], bitRateHistory: [], elapsedSeconds: 0,
+    Sc: 0, Si: 0, inputBuffer: [], blockQueue: [], bitRateHistory: [],
   };
 
-  fillQueue(); renderStack(); updateInputIndicator(); updateDashboard(); resizeCanvas();
-
+  fillQueue(); renderStack(); updateDashboard(); resizeCanvas();
   [startScreen, scoreScreen, intertrialScreen, testCompleteScreen].forEach(s => s.classList.add('hidden'));
   startTick();
 }
@@ -438,8 +413,6 @@ function shuffled(arr) {
   return a;
 }
 
-let testOrder = [];
-
 function startTestMode() {
   testMode = true; testCfgIdx = 0; testScores = [];
   testOrder = shuffled(TEST_CONFIGS);
@@ -448,8 +421,8 @@ function startTestMode() {
 }
 
 function showIntertrial() {
-  const prev = testScores[testScores.length - 1];
-  const next = testOrder[testCfgIdx];
+  const prev  = testScores[testScores.length - 1];
+  const next  = testOrder[testCfgIdx];
   const nextN = configN(next);
 
   document.getElementById('intertrial-progress').textContent =
@@ -467,10 +440,10 @@ function showTestComplete() {
   const tbody = document.getElementById('test-results-body');
   tbody.innerHTML = '';
   testScores.forEach(s => {
-    const n = configN(s.cfg);
+    const n  = configN(s.cfg);
     const tr = document.createElement('tr');
     tr.innerHTML =
-      `<td>${s.cfg.label}</td><td>${n}</td><td>${Math.log2(n-1).toFixed(2)}</td>` +
+      `<td>${s.cfg.label}</td><td>${n}</td><td>${Math.log2(n - 1).toFixed(2)}</td>` +
       `<td>${s.Sc}</td><td>${s.Si}</td><td>${s.acc}</td>` +
       `<td class="bps-cell">${s.bps.toFixed(3)}</td>`;
     tbody.appendChild(tr);
@@ -482,17 +455,16 @@ function downloadCSV() {
   const rows = ['config,N,bits_per_sel,Sc,Si,accuracy,bps'];
   testScores.forEach(s => {
     const n = configN(s.cfg);
-    rows.push(`"${s.cfg.label}",${n},${Math.log2(n-1).toFixed(4)},${s.Sc},${s.Si},"${s.acc}",${s.bps.toFixed(4)}`);
+    rows.push(`"${s.cfg.label}",${n},${Math.log2(n - 1).toFixed(4)},${s.Sc},${s.Si},"${s.acc}",${s.bps.toFixed(4)}`);
   });
   const a = document.createElement('a');
   a.href     = URL.createObjectURL(new Blob([rows.join('\n')], { type: 'text/csv' }));
-  a.download = `combostack_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.csv`;
+  a.download = `combostack_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`;
   a.click();
 }
 
 // ── INPUT HANDLING ─────────────────────────────────────────────────────────────
 window.addEventListener('keydown', (e) => {
-  // Test mode trigger takes priority so 't' isn't swallowed by word-mode KEY_MAP
   if ((e.key === 't' || e.key === 'T') && (state.phase === 'idle' || state.phase === 'done')) {
     startTestMode();
     return;
@@ -506,11 +478,7 @@ window.addEventListener('keydown', (e) => {
 
   if (e.code === 'Space') {
     e.preventDefault();
-    if (testMode && state.phase === 'done') {
-      startGame();
-    } else if (state.phase === 'idle' || state.phase === 'done') {
-      startGame();
-    }
+    if (state.phase === 'idle' || state.phase === 'done') startGame();
     return;
   }
 });
