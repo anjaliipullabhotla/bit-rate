@@ -53,28 +53,37 @@ const TEST_CONFIGS = [
     DIR_CLASS:  Object.fromEntries('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, 'dir-letter'])),
   },
   {
-    label:      'a-Z (×2)',
-    SEQ_LENGTH: 2,
-    KEY_MAP:    Object.fromEntries([
-      ...'abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c]),
-      ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, c]),
-    ]),
-    DIR_CLASS:  Object.fromEntries(
-      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, 'dir-letter'])
-    ),
+    label:      'A – Z (×3)',
+    SEQ_LENGTH: 3,
+    horizMode:  true,
+    KEY_MAP:    Object.fromEntries('abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c.toUpperCase()])),
+    DIR_CLASS:  Object.fromEntries('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, 'dir-letter'])),
   },
-  {
-    label:      'a-Z + 0-9 (×2)',
-    SEQ_LENGTH: 2,
-    KEY_MAP:    Object.fromEntries([
-      ...'abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c]),
-      ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, c]),
-      ...'0123456789'.split('').map(c => [c, c]),
-    ]),
-    DIR_CLASS:  Object.fromEntries(
-      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').map(c => [c, 'dir-letter'])
-    ),
-  },
+  // {
+  //   label:      'a-Z (×2)',
+  //   SEQ_LENGTH: 2,
+  //   horizMode:  true,
+  //   KEY_MAP:    Object.fromEntries([
+  //     ...'abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c]),
+  //     ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, c]),
+  //   ]),
+  //   DIR_CLASS:  Object.fromEntries(
+  //     'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, 'dir-letter'])
+  //   ),
+  // },
+  // {
+  //   label:      'a-Z + 0-9 (×2)',
+  //   SEQ_LENGTH: 2,
+  //   horizMode:  true,
+  //   KEY_MAP:    Object.fromEntries([
+  //     ...'abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c]),
+  //     ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, c]),
+  //     ...'0123456789'.split('').map(c => [c, c]),
+  //   ]),
+  //   DIR_CLASS:  Object.fromEntries(
+  //     'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').map(c => [c, 'dir-letter'])
+  //   ),
+  // },
 ];
 
 const DURATION   = 60;
@@ -510,5 +519,5 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('resize', resizeCanvas);
 
 // ── BOOT ───────────────────────────────────────────────────────────────────────
-activateConfig(TEST_CONFIGS[8]);
+activateConfig(TEST_CONFIGS[0]);
 resizeCanvas();
