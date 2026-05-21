@@ -1,4 +1,4 @@
-# ComboStack — BCI Bit Rate Maximizer
+# BCI Bit Rate Maximizer
 
 A 60-second human-speed benchmark built to maximize **Bit Rate (B)** under the Shenoy et al. (2021) BCI evaluation formula.
 
@@ -13,6 +13,7 @@ A 60-second human-speed benchmark built to maximize **Bit Rate (B)** under the S
 This launches a Python HTTP server on `localhost:8000` and opens the app in your default browser automatically.
 
 **Manual launch:**
+
 ```bash
 python3 -m http.server 8000
 # then open http://localhost:8000
@@ -37,11 +38,11 @@ python3 -m http.server 8000
 
 ### Why N = 16?
 
-| Layout | N | bits/selection | Notes |
-|---|---|---|---|
-| 4 single keys | 4 | 1.58 | Too sparse — low information density |
-| **2-key arrow combos** | **16** | **3.91** | **Optimal throughput/cognitive-load balance** |
-| 3-key arrow combos | 64 | 5.98 | High bits but severe cognitive delay + error propagation |
+| Layout                       | N            | bits/selection | Notes                                                    |
+| ---------------------------- | ------------ | -------------- | -------------------------------------------------------- |
+| 4 single keys                | 4            | 1.58           | Too sparse — low information density                    |
+| **2-key arrow combos** | **16** | **3.91** | **Optimal throughput/cognitive-load balance**      |
+| 3-key arrow combos           | 64           | 5.98           | High bits but severe cognitive delay + error propagation |
 
 The formula is:
 
@@ -82,12 +83,12 @@ Si = incorrect selections
 
 ## Architecture
 
-| File | Purpose |
-|---|---|
-| `index.html` | Layout, CSS, and all visual styling. Zero framework dependencies. |
-| `script.js` | Game state machine, input handling, bit rate calculation, canvas chart. |
-| `run.sh` | One-command launcher: Python HTTP server + auto browser open. |
-| `README.md` | This file. |
+| File           | Purpose                                                                 |
+| -------------- | ----------------------------------------------------------------------- |
+| `index.html` | Layout, CSS, and all visual styling. Zero framework dependencies.       |
+| `script.js`  | Game state machine, input handling, bit rate calculation, canvas chart. |
+| `run.sh`     | One-command launcher: Python HTTP server + auto browser open.           |
+| `README.md`  | This file.                                                              |
 
 No build tools, no npm, no bundler. Open in any modern browser.
 

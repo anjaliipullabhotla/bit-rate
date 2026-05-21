@@ -2,55 +2,78 @@
 
 // ── TEST CONFIGURATIONS ────────────────────────────────────────────────────────
 const TEST_CONFIGS = [
-  {
-    label:      'Arrows ↑↓←→',
-    SEQ_LENGTH: 2,
-    KEY_MAP:    { 'ArrowUp':'↑','ArrowDown':'↓','ArrowLeft':'←','ArrowRight':'→' },
-    DIR_CLASS:  { '↑':'dir-up','↓':'dir-down','←':'dir-left','→':'dir-right' },
-  },
-  {
-    label:      '0 – 9',
-    SEQ_LENGTH: 2,
-    KEY_MAP:    { '0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9' },
-    DIR_CLASS:  { '0':'dir-0','1':'dir-1','2':'dir-2','3':'dir-3','4':'dir-4','5':'dir-5','6':'dir-6','7':'dir-7','8':'dir-8','9':'dir-9' },
-  },
-  {
-    label:      'ASDF + JKL;',
-    SEQ_LENGTH: 2,
-    KEY_MAP:    { 'a':'A','s':'S','d':'D','f':'F','j':'J','k':'K','l':'L',';':';' },
-    DIR_CLASS:  { 'A':'dir-a','S':'dir-s','D':'dir-d','F':'dir-f','J':'dir-j','K':'dir-k','L':'dir-l',';':'dir-semi' },
-  },
-  {
-    label:      '1 – 4',
-    SEQ_LENGTH: 2,
-    KEY_MAP:    { '1':'1','2':'2','3':'3','4':'4' },
-    DIR_CLASS:  { '1':'dir-1','2':'dir-2','3':'dir-3','4':'dir-4' },
-  },
-  {
-    label:      '1 – 4 (×3)',
-    SEQ_LENGTH: 3,
-    KEY_MAP:    { '1':'1','2':'2','3':'3','4':'4' },
-    DIR_CLASS:  { '1':'dir-1','2':'dir-2','3':'dir-3','4':'dir-4' },
-  },
-  {
-    label:      '1 – 4',
-    SEQ_LENGTH: 1,
-    KEY_MAP:    { '1':'1','2':'2','3':'3','4':'4' },
-    DIR_CLASS:  { '1':'dir-1','2':'dir-2','3':'dir-3','4':'dir-4' },
-  },
-  {
-    label:      'A – Z (×1)',
-    SEQ_LENGTH: 1,
-    horizMode:  true,
-    KEY_MAP:    Object.fromEntries('abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c.toUpperCase()])),
-    DIR_CLASS:  Object.fromEntries('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, 'dir-letter'])),
-  },
+  // {
+  //   label:      'Arrows ↑↓←→',
+  //   SEQ_LENGTH: 2,
+  //   KEY_MAP:    { 'ArrowUp':'↑','ArrowDown':'↓','ArrowLeft':'←','ArrowRight':'→' },
+  //   DIR_CLASS:  { '↑':'dir-up','↓':'dir-down','←':'dir-left','→':'dir-right' },
+  // },
+  // {
+  //   label:      '0 – 9',
+  //   SEQ_LENGTH: 2,
+  //   KEY_MAP:    { '0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9' },
+  //   DIR_CLASS:  { '0':'dir-0','1':'dir-1','2':'dir-2','3':'dir-3','4':'dir-4','5':'dir-5','6':'dir-6','7':'dir-7','8':'dir-8','9':'dir-9' },
+  // },
+  // {
+  //   label:      'ASDF + JKL;',
+  //   SEQ_LENGTH: 2,
+  //   KEY_MAP:    { 'a':'A','s':'S','d':'D','f':'F','j':'J','k':'K','l':'L',';':';' },
+  //   DIR_CLASS:  { 'A':'dir-a','S':'dir-s','D':'dir-d','F':'dir-f','J':'dir-j','K':'dir-k','L':'dir-l',';':'dir-semi' },
+  // },
+  // {
+  //   label:      '1 – 4',
+  //   SEQ_LENGTH: 2,
+  //   KEY_MAP:    { '1':'1','2':'2','3':'3','4':'4' },
+  //   DIR_CLASS:  { '1':'dir-1','2':'dir-2','3':'dir-3','4':'dir-4' },
+  // },
+  // {
+  //   label:      '1 – 4 (×3)',
+  //   SEQ_LENGTH: 3,
+  //   KEY_MAP:    { '1':'1','2':'2','3':'3','4':'4' },
+  //   DIR_CLASS:  { '1':'dir-1','2':'dir-2','3':'dir-3','4':'dir-4' },
+  // },
+  // {
+  //   label:      '1 – 4',
+  //   SEQ_LENGTH: 1,
+  //   KEY_MAP:    { '1':'1','2':'2','3':'3','4':'4' },
+  //   DIR_CLASS:  { '1':'dir-1','2':'dir-2','3':'dir-3','4':'dir-4' },
+  // },
+  // {
+  //   label:      'A – Z (×1)',
+  //   SEQ_LENGTH: 1,
+  //   horizMode:  true,
+  //   KEY_MAP:    Object.fromEntries('abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c.toUpperCase()])),
+  //   DIR_CLASS:  Object.fromEntries('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, 'dir-letter'])),
+  // },
   {
     label:      'A – Z (×2)',
     SEQ_LENGTH: 2,
     horizMode:  true,
     KEY_MAP:    Object.fromEntries('abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c.toUpperCase()])),
     DIR_CLASS:  Object.fromEntries('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, 'dir-letter'])),
+  },
+  {
+    label:      'a-Z (×2)',
+    SEQ_LENGTH: 2,
+    KEY_MAP:    Object.fromEntries([
+      ...'abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c]),
+      ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, c]),
+    ]),
+    DIR_CLASS:  Object.fromEntries(
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, 'dir-letter'])
+    ),
+  },
+  {
+    label:      'a-Z + 0-9 (×2)',
+    SEQ_LENGTH: 2,
+    KEY_MAP:    Object.fromEntries([
+      ...'abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c]),
+      ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [c, c]),
+      ...'0123456789'.split('').map(c => [c, c]),
+    ]),
+    DIR_CLASS:  Object.fromEntries(
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').map(c => [c, 'dir-letter'])
+    ),
   },
 ];
 
@@ -487,5 +510,5 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('resize', resizeCanvas);
 
 // ── BOOT ───────────────────────────────────────────────────────────────────────
-activateConfig(TEST_CONFIGS[7]);
+activateConfig(TEST_CONFIGS[8]);
 resizeCanvas();
