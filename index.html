@@ -335,6 +335,7 @@
          Read the preview blocks above to stay one step ahead.</p>
       <p id="mode-info" style="color:var(--text);font-size:0.82rem;"></p>
       <div class="spacebar-hint">Press SPACE to start</div>
+      <p style="color:var(--muted);font-size:0.78rem;">3-second countdown before timer begins.</p>
       <p style="color:var(--muted);font-size:0.78rem;margin-top:0.5rem;">
         Press <strong style="color:var(--text)">T</strong> (test mode) to
         play all variations and downloads a CSV with your scores for each.
@@ -347,6 +348,14 @@
       <div class="final-bps" id="final-bps-value">0.00</div>
       <div class="final-bps-label">bits / second</div>
       <div class="score-grid">
+        <div class="score-item">
+          <div class="score-label">N (alphabet size)</div>
+          <div class="score-value" id="final-n">—</div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">bits / selection</div>
+          <div class="score-value" id="final-bits">—</div>
+        </div>
         <div class="score-item">
           <div class="score-label">Correct (Sc)</div>
           <div class="score-value" id="final-sc" style="color:var(--green)">0</div>
@@ -389,6 +398,11 @@
     </div>
 
     <div id="game-title">ComboStack · 60s BCI Benchmark</div>
+
+    <!-- COUNTDOWN SCREEN -->
+    <div class="overlay hidden" id="countdown-screen">
+      <div id="countdown-label" style="font-size:7rem;font-weight:700;color:var(--accent);text-shadow:var(--glow);"></div>
+    </div>
 
     <!-- BLOCK STACK — populated by renderStack() -->
     <div id="stack-col"></div>

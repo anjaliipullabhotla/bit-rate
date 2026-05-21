@@ -121,15 +121,20 @@ const bpsVal             = document.getElementById('bps-value');
 const canvas             = document.getElementById('bitrate-canvas');
 const ctx                = canvas.getContext('2d');
 
-const finalBps = document.getElementById('final-bps-value');
-const finalSc  = document.getElementById('final-sc');
-const finalSi  = document.getElementById('final-si');
-const finalNet = document.getElementById('final-net');
-const finalAcc = document.getElementById('final-acc');
+const finalBps  = document.getElementById('final-bps-value');
+const finalN    = document.getElementById('final-n');
+const finalBits = document.getElementById('final-bits');
+const finalSc   = document.getElementById('final-sc');
+const finalSi   = document.getElementById('final-si');
+const finalNet  = document.getElementById('final-net');
+const finalAcc  = document.getElementById('final-acc');
 
 // ── CONFIG ACTIVATION ──────────────────────────────────────────────────────────
 function configN(cfg) {
-  return Math.pow(Object.keys(cfg.KEY_MAP).length, cfg.SEQ_LENGTH);
+  const k = Object.keys(cfg.KEY_MAP).length;
+  const L = cfg.SEQ_LENGTH;
+  if (L <= 1) return k;
+  return k * Math.pow(k - 1, L - 1);
 }
 
 function activateConfig(cfg) {
@@ -149,7 +154,11 @@ function activateConfig(cfg) {
 function randomSequence() {
   const seq = [];
   for (let i = 0; i < CONFIG.SEQ_LENGTH; i++) {
-    seq.push(CONFIG.KEY_MAP[KEYS[Math.floor(Math.random() * KEYS.length)]]);
+    let sym;
+    do {
+      sym = CONFIG.KEY_MAP[KEYS[Math.floor(Math.random() * KEYS.length)]];
+    } while (seq.length > 0 && sym === seq[seq.length - 1]);
+    seq.push(sym);
   }
   return seq;
 }
@@ -329,7 +338,7 @@ function handleKeyPress(key) {
 
 // ── DASHBOARD ──────────────────────────────────────────────────────────────────
 function updateDashboard() {
-  const elapsed = DURATION - state.timerRemaining;
+  const elapsed = startTimestamp ? (performance.now() - startTimestamp) / 1000 : 0;
   timerVal.textContent = state.timerRemaining.toFixed(1);
   timerVal.classList.toggle('urgent', state.timerRemaining <= 10);
   scVal.textContent  = state.Sc;
@@ -359,15 +368,36 @@ function startTick() {
 }
 
 // ── GAME LIFECYCLE ─────────────────────────────────────────────────────────────
+function runCountdown(callback) {
+  const overlay = document.getElementById('countdown-screen');
+  const label   = document.getElementById('countdown-label');
+  let count = 3;
+  overlay.classList.remove('hidden');
+  label.textContent = count;
+  const id = setInterval(() => {
+    count--;
+    if (count > 0) {
+      label.textContent = count;
+    } else {
+      clearInterval(id);
+      overlay.classList.add('hidden');
+      callback();
+    }
+  }, 1000);
+}
+
 function startGame() {
   state = {
-    phase: 'running', timerRemaining: DURATION,
+    phase: 'countdown', timerRemaining: DURATION,
     Sc: 0, Si: 0, inputBuffer: [], blockQueue: [], bitRateHistory: [],
   };
 
   fillQueue(); renderStack(); updateDashboard(); resizeCanvas();
   [startScreen, scoreScreen, intertrialScreen, testCompleteScreen].forEach(s => s.classList.add('hidden'));
-  startTick();
+  runCountdown(() => {
+    state.phase = 'running';
+    startTick();
+  });
 }
 
 function endGame() {
@@ -375,7 +405,8 @@ function endGame() {
   clearInterval(tickInterval); clearInterval(chartInterval);
   tickInterval = chartInterval = null;
 
-  const finalRate = calculateBitRate(DURATION);
+  const elapsed   = (performance.now() - startTimestamp) / 1000;
+  const finalRate = calculateBitRate(elapsed);
   const net       = Math.max(state.Sc - state.Si, 0);
   const total     = state.Sc + state.Si;
   const acc       = total > 0 ? ((state.Sc / total) * 100).toFixed(1) + '%' : '—';
@@ -394,11 +425,13 @@ function endGame() {
       downloadCSV();
     }
   } else {
-    finalBps.textContent = finalRate.toFixed(4);
-    finalSc.textContent  = state.Sc;
-    finalSi.textContent  = state.Si;
-    finalNet.textContent = net;
-    finalAcc.textContent = acc;
+    finalBps.textContent  = finalRate.toFixed(4);
+    finalN.textContent    = N;
+    finalBits.textContent = INFO_DENSITY.toFixed(2);
+    finalSc.textContent   = state.Sc;
+    finalSi.textContent   = state.Si;
+    finalNet.textContent  = net;
+    finalAcc.textContent  = acc;
     scoreScreen.classList.remove('hidden');
   }
 }
