@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ComboStack — BCI Bit Rate Maximizer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0f13;
+      --surface:   #161a22;
+      --surface2:  #1e2430;
+      --border:    #2a3040;
+      --text:      #e8eaf0;
+      --muted:     #55607a;
+      --accent:    #00b4ff;
+      --green:     #00e676;
+      --red:       #ff1744;
+      --gold:      #ffd600;
+      --glow:      0 0 18px rgba(0,180,255,0.55);
+      --font:      'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* ── LAYOUT ─────────────────────────────────── */
+    #app {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      grid-template-rows: 1fr;
+      height: 100vh;
+      gap: 0;
+    }
+
+    #left-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      gap: 2rem;
+      position: relative;
+    }
+
+    #right-panel {
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+      gap: 1.5rem;
+      overflow: hidden;
+    }
+
+    /* ── OVERLAY SCREENS ────────────────────────── */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      gap: 1.2rem;
+      z-index: 100;
+      transition: opacity 0.3s;
+    }
+    .overlay.hidden { opacity: 0; pointer-events: none; }
+
+    .overlay h1 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-shadow: var(--glow);
+      letter-spacing: 0.04em;
+    }
+    .overlay p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.7;
+      text-align: center;
+      max-width: 420px;
+    }
+    .overlay .spacebar-hint {
+      margin-top: 0.5rem;
+      padding: 0.6rem 1.8rem;
+      border: 1.5px solid var(--accent);
+      border-radius: 6px;
+      color: var(--accent);
+      font-size: 1rem;
+      animation: pulse-border 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse-border {
+      0%,100% { box-shadow: 0 0 6px rgba(0,180,255,0.3); }
+      50%      { box-shadow: 0 0 18px rgba(0,180,255,0.7); }
+    }
+
+    /* final score card */
+    #score-screen .score-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem 2rem;
+      margin: 0.8rem 0;
+    }
+    #score-screen .score-item { text-align: center; }
+    #score-screen .score-label { font-size: 0.75rem; color: var(--muted); }
+    #score-screen .score-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    #score-screen .final-bps {
+      font-size: 3.2rem;
+      font-weight: 700;
+      color: var(--gold);
+      text-shadow: 0 0 20px rgba(255,214,0,0.5);
+    }
+    #score-screen .final-bps-label { color: var(--muted); font-size: 0.85rem; }
+
+    /* ── STACK COLUMN ───────────────────────────── */
+    #stack-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+.block {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    /* preview blocks */
+    .block.preview {
+      width: 160px;
+      height: 60px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      font-size: 1.5rem;
+      color: var(--muted);
+      opacity: 0.65;
+    }
+    .block.preview:first-child { opacity: 0.85; }
+
+    /* active (bottom) block */
+    .block.active {
+      width: 220px;
+      height: 110px;
+      background: var(--surface2);
+      border: 2px solid var(--accent);
+      box-shadow: var(--glow), inset 0 0 30px rgba(0,180,255,0.07);
+      font-size: 3rem;
+    }
+
+    /* ── key colors: shared palette used by all input modes ─────────────────── */
+    .block.active .key { transition: color 0.08s; }
+
+    /* slot 1 — cyan */
+    .block.active .key.dir-up,   .block.active .key.dir-1, .block.active .key.dir-a { color: #80deea; }
+    /* slot 2 — purple */
+    .block.active .key.dir-down, .block.active .key.dir-2, .block.active .key.dir-s { color: #cf94ff; }
+    /* slot 3 — orange */
+    .block.active .key.dir-left, .block.active .key.dir-3, .block.active .key.dir-d { color: #ffb74d; }
+    /* slot 4 — pink */
+    .block.active .key.dir-right,.block.active .key.dir-4, .block.active .key.dir-f { color: #f48fb1; }
+    /* slot 5 — green */
+    .block.active .key.dir-8,  .block.active .key.dir-j { color: #69f0ae; }
+    /* slot 6 — yellow */
+    .block.active .key.dir-9,  .block.active .key.dir-k { color: #ffd740; }
+    /* slot 7 — coral */
+    .block.active .key.dir-0,  .block.active .key.dir-l { color: #ff6e6e; }
+    /* slot 8 — teal */
+    .block.active .key.dir-semi { color: #64ffda; }
+    /* digit-only slots 5/6/7 */
+    .block.active .key.dir-5 { color: #b9f6ca; }
+    .block.active .key.dir-6 { color: #ff6e40; }
+    .block.active .key.dir-7 { color: #80d8ff; }
+    /* single-letter config */
+    .block.active .key.dir-letter { color: #c5cae9; }
+
+    .block.active .key.hit { color: var(--accent) !important; text-shadow: 0 0 10px var(--accent); }
+
+    /* preview blocks — same slots, muted */
+    .block.preview .dir-up,   .block.preview .dir-1, .block.preview .dir-a { color: rgba(128,222,234,0.65); }
+    .block.preview .dir-down, .block.preview .dir-2, .block.preview .dir-s { color: rgba(207,148,255,0.65); }
+    .block.preview .dir-left, .block.preview .dir-3, .block.preview .dir-d { color: rgba(255,183, 77,0.65); }
+    .block.preview .dir-right,.block.preview .dir-4, .block.preview .dir-f { color: rgba(244,143,177,0.65); }
+    .block.preview .dir-8,    .block.preview .dir-j { color: rgba(105,240,174,0.65); }
+    .block.preview .dir-9,    .block.preview .dir-k { color: rgba(255,215, 64,0.65); }
+    .block.preview .dir-0,    .block.preview .dir-l { color: rgba(255,110,110,0.65); }
+    .block.preview .dir-semi { color: rgba(100,255,218,0.65); }
+    .block.preview .dir-5 { color: rgba(185,246,202,0.65); }
+    .block.preview .dir-6 { color: rgba(255,110, 64,0.65); }
+    .block.preview .dir-7 { color: rgba(128,216,255,0.65); }
+    .block.preview .dir-letter { color: rgba(197,202,233,0.65); }
+
+    /* state modifiers */
+.block.error {
+      border-color: var(--red) !important;
+      box-shadow: 0 0 20px rgba(255,23,68,0.5) !important;
+      animation: shake 0.18s ease;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%      { transform: translateX(-8px); }
+      40%      { transform: translateX(8px); }
+      60%      { transform: translateX(-6px); }
+      80%      { transform: translateX(5px); }
+    }
+
+
+    /* horizontal layout for single-key configs */
+    #stack-col.horiz-mode {
+      flex-direction: row-reverse;
+      align-items: center;
+      gap: 10px;
+    }
+    #stack-col.horiz-mode .block.active {
+      width: 110px;
+      height: 110px;
+      font-size: 3rem;
+    }
+    #stack-col.horiz-mode .block.preview {
+      width: 60px;
+      height: 60px;
+      font-size: 1.4rem;
+    }
+
+    /* ── RIGHT PANEL WIDGETS ─────────────────────── */
+    .metric-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem 1.1rem;
+    }
+    .metric-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+    .metric-value {
+      font-size: 2.2rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--text);
+    }
+    .metric-value.accent { color: var(--accent); text-shadow: var(--glow); }
+    .metric-value.green  { color: var(--green); }
+    .metric-value.red    { color: var(--red); }
+    .metric-value.gold   { color: var(--gold); }
+
+    #timer-value {
+      font-size: 3rem;
+      transition: color 0.3s;
+    }
+    #timer-value.urgent { color: var(--red); text-shadow: 0 0 14px rgba(255,23,68,0.5); }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .stats-row .metric-card { padding: 0.75rem 0.9rem; }
+    .stats-row .metric-value { font-size: 1.7rem; }
+
+    #bitrate-card { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    #bitrate-card .metric-value { font-size: 1.6rem; margin-bottom: 0.5rem; }
+
+    #chart-container {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+    }
+    #bitrate-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 4px;
+    }
+
+    /* sequence display under stack */
+    #input-indicator {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .ind-key {
+      width: 36px; height: 36px;
+      border-radius: 5px;
+      border: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      color: var(--muted);
+      background: var(--surface2);
+      transition: all 0.08s;
+    }
+    .ind-key.filled {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0,180,255,0.1);
+      box-shadow: 0 0 8px rgba(0,180,255,0.35);
+    }
+
+    /* test results table */
+    #test-results-table {
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin: 0.5rem 0;
+      width: 100%;
+      max-width: 520px;
+    }
+    #test-results-table th, #test-results-table td {
+      padding: 0.45rem 0.8rem;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+    #test-results-table th { color: var(--muted); font-weight: 400; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.08em; }
+    #test-results-table td:first-child, #test-results-table th:first-child { text-align: left; }
+    #test-results-table .bps-cell { color: var(--gold); font-weight: 700; }
+
+    /* title above stack */
+    #game-title {
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── LEFT PANEL ─────────────────────────────── -->
+  <div id="left-panel">
+
+    <!-- START SCREEN -->
+    <div class="overlay" id="start-screen">
+      <h1>ComboStack</h1>
+      <p>Each block shows a sequence of keys — type them in order to clear it.<br>
+         Wrong key: the block flashes red and your input resets.<br>
+         Read the preview blocks above to stay one step ahead.</p>
+      <p id="mode-info" style="color:var(--text);font-size:0.82rem;"></p>
+      <div class="spacebar-hint">Press SPACE to start</div>
+      <p style="color:var(--muted);font-size:0.78rem;margin-top:0.5rem;">
+        Press <strong style="color:var(--text)">T</strong> (test mode) to
+        play all variations and downloads a CSV with your scores for each.
+      </p>
+    </div>
+
+    <!-- FINAL SCORE SCREEN -->
+    <div class="overlay hidden" id="score-screen">
+      <h1>Test Complete</h1>
+      <div class="final-bps" id="final-bps-value">0.00</div>
+      <div class="final-bps-label">bits / second</div>
+      <div class="score-grid">
+        <div class="score-item">
+          <div class="score-label">Correct (Sc)</div>
+          <div class="score-value" id="final-sc" style="color:var(--green)">0</div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">Incorrect (Si)</div>
+          <div class="score-value" id="final-si" style="color:var(--red)">0</div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">Net Selections</div>
+          <div class="score-value" id="final-net">0</div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">Accuracy</div>
+          <div class="score-value" id="final-acc">—</div>
+        </div>
+      </div>
+      <div class="spacebar-hint">Press SPACE to restart</div>
+    </div>
+
+    <!-- INTER-TRIAL SCREEN -->
+    <div class="overlay hidden" id="intertrial-screen">
+      <div id="intertrial-progress" style="font-size:0.8rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;"></div>
+      <div id="intertrial-done" style="font-size:1.1rem;color:var(--green);margin:0.5rem 0;"></div>
+      <div id="intertrial-next" style="font-size:0.95rem;color:var(--text);margin-bottom:0.8rem;"></div>
+      <div class="spacebar-hint">Press SPACE to begin next round</div>
+    </div>
+
+    <!-- TEST COMPLETE SCREEN -->
+    <div class="overlay hidden" id="test-complete-screen">
+      <h1>Test Complete</h1>
+      <table id="test-results-table">
+        <thead>
+          <tr><th>Config</th><th>N</th><th>bits/sel</th><th>Sc</th><th>Si</th><th>Acc</th><th>bps</th></tr>
+        </thead>
+        <tbody id="test-results-body"></tbody>
+      </table>
+      <div style="color:var(--muted);font-size:0.8rem;margin-top:0.5rem;">CSV downloaded automatically</div>
+      <div class="spacebar-hint" style="margin-top:0.8rem;">Press SPACE to play again</div>
+    </div>
+
+    <div id="game-title">ComboStack · 60s BCI Benchmark</div>
+
+    <!-- BLOCK STACK -->
+    <div id="stack-col">
+      <!-- JS renders blocks here -->
+    </div>
+
+    <!-- INPUT INDICATOR DOTS — generated by JS based on SEQ_LENGTH -->
+    <div id="input-indicator"></div>
+
+  </div>
+
+  <!-- ── RIGHT PANEL ────────────────────────────── -->
+  <div id="right-panel">
+
+    <div class="metric-card">
+      <div class="metric-label">Time Remaining</div>
+      <div class="metric-value accent" id="timer-value">60.0</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="metric-card">
+        <div class="metric-label">Correct (Sc)</div>
+        <div class="metric-value green" id="sc-value">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Incorrect (Si)</div>
+        <div class="metric-value red" id="si-value">0</div>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-label">Current Bit Rate</div>
+      <div class="metric-value gold" id="bps-value">0.00 bps</div>
+    </div>
+
+    <div class="metric-card" id="bitrate-card">
+      <div class="metric-label">Bit Rate History</div>
+      <div id="chart-container">
+        <canvas id="bitrate-canvas"></canvas>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
