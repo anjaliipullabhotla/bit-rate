@@ -110,7 +110,7 @@ const TEST_CONFIGS = [
 ];
 
 const DURATION       = 60;
-const CALIB_DURATION = 69; // 4×15s windows + 4×1s transitions + 5s verification
+const CALIB_DURATION = 60; // 4×12s windows + 4×1s transitions + 8s verification
 const QUEUE_SIZE     = 4;
 
 // 66-char pool ordered so slice(0,k) gives the k-char keyset at each harvest point:
@@ -253,7 +253,7 @@ function showCalibTransition(title, callback) {
   setTimeout(callback, 1000);
 }
 
-// Called at 15s/30s/45s/60s: records current window data, then switches config at
+// Called at 12s/24s/36s/48s: records current window data, then switches config at
 // the next clean block boundary so mid-sequence typing is never interrupted.
 function advanceCalibPhase() {
   // Stamp the transition time so drawChart can draw a vertical marker line
@@ -261,7 +261,7 @@ function advanceCalibPhase() {
 
   const elapsed = calibIntervalStart
     ? (performance.now() - calibIntervalStart) / 1000
-    : 15;
+    : 12;
   calibIntervalData.push({
     k:          HARVEST_INTERVALS[calibPhase].k,
     keystrokes: calibIntervalKeystrokes,
@@ -280,12 +280,12 @@ function advanceCalibPhase() {
   if (calibPhase < 4) {
     nextK = HARVEST_INTERVALS[calibPhase].k;
     nextL = 2;
-    title = `CALIBRATION 69s · Harvesting k=${nextK}`;
+    title = `CALIBRATION 60s · Harvesting k=${nextK}`;
   } else {
     computeOptimalConfig();
     nextK = calibOptK;
     nextL = calibOptL;
-    title = `CALIBRATION 69s · Verifying k=${nextK} L=${nextL}`;
+    title = `CALIBRATION 60s · Verifying k=${nextK} L=${nextL}`;
   }
 
   const deploy = () => {
@@ -375,8 +375,8 @@ function computeOptimalConfig() {
   }
 
   // --- TIME-FATIGUE COEFFICIENTS (60s Marathon vs 15s Calibration Sprint) ---
-  const DELTA_SPEED = 0.025; 
-  const DELTA_ERROR = 0.012; 
+  const DELTA_SPEED = 0.03; 
+  const DELTA_ERROR = 0.02; 
   
   // --- INTRA-SEQUENCE COGNITIVE DRIFT CONSTANT ---
   const INTRA_SEQ_DEGRADATION = 0.35; 
@@ -883,9 +883,9 @@ function startCalibration() {
     calibIntervalStart = performance.now();
     startTick(CALIB_DURATION, endCalibration);
 
-    // Spaced to give exactly 15s of typing per window after each 1s transition pause:
-    // k=9: 0–15s | pause | k=26: 16–31s | pause | k=52: 32–47s | pause | k=62: 48–63s | pause | verif: 64–69s
-    [15000, 31000, 47000, 63000].forEach(delay => {
+    // Spaced to give exactly 12s of typing per window after each 1s transition pause:
+    // k=9: 0–12s | pause | k=26: 13–25s | pause | k=52: 26–38s | pause | k=62: 39–51s | pause | verif: 52–60s
+    [12000, 25000, 38000, 51000].forEach(delay => {
       calibPhaseTimers.push(setTimeout(() => {
         if (state.phase !== 'calibrating') return;
         advanceCalibPhase();
@@ -933,8 +933,8 @@ function endCalibration() {
 
   if (calibOptK === null) { calibOptK = 9; calibOptL = 2; } // fallback if opt never ran
 
-// Safety damping: if verification error rate collapses (>10%), 
-  // roll back directly to the highest calibration tier where they proved stability.
+// Safety damping: if verification error rate collapses (>5%) OR if typing speed drops catastrophically
+  // (indicating a cognitive survival brake), roll back directly to an empirically proven safe tier.
   let finalK = calibOptK;
   let finalL = calibOptL;
   let damped = false;
@@ -943,34 +943,52 @@ function endCalibration() {
   if (verifTotal > 0) {
     const verifErrorRate = calibVerifErrors / verifTotal;
     
-    // Panic Trigger: User is choking during live verification
-    if (verifErrorRate > 0.10) {
+    // 1. Calculate active verification speed (Keystrokes Per Second)
+    // Fallback defensively to 15s if your global validation timer variable has a different name
+    const verifDuration = (typeof calibVerifDuration !== 'undefined') ? calibVerifDuration : 15;
+    const verifKps = calibVerifKeystrokes / verifDuration;
+    
+    // 2. Look up the baseline speed they managed during calibration for this exact configuration
+    const calibMatch = calibIntervalData.find(d => d.k === calibOptK);
+    const calibKps = (calibMatch && calibMatch.duration > 0) ? (calibMatch.keystrokes / calibMatch.duration) : 1.5;
+    
+    // 3. Dual Panic Triggers:
+    // Trigger A: User is blowing up sequences with mistakes (>5% error rate)
+    const highErrors = verifErrorRate > 0.05;
+    
+    // Trigger B: User slowed down by more than 15% compared to their calibration sprint to avoid mistakes
+    const speedCollapsed = verifKps < calibKps * 0.85;
+
+    if (highErrors || speedCollapsed) {
       damped = true;
       finalL = 2; // Force safe pair rhythm to eliminate sequence length strain
       
-      // Filter calibration history to find intervals where accuracy was actually safe (<= 10% errors)
+      // Filter calibration history to find intervals where accuracy was actually stable (<= 5% errors)
       const safeIntervals = calibIntervalData
-        .filter(d => d.keystrokes > 0)
+        .filter(d => d.keystrokes > 0 && d.duration > 0)
         .map(d => ({
           k: d.k,
           eRate: d.errors / (d.keystrokes + d.errors)
         }))
-        .filter(d => d.eRate <= 0.10) // Must have been a clean run
+        .filter(d => d.eRate <= 0.05) // Must have been a clean run
         .sort((x, y) => y.k - x.k);    // Sort descending to find the highest viable alphabet
       
       if (safeIntervals.length > 0) {
-        // Snap directly to the largest keyset they successfully managed
+        // Snap directly to the largest keyset they successfully managed cleanly
         finalK = safeIntervals[0].k;
       } else {
-        // Extreme fallback: If they struggled on every single calibration tier,
-        // force them to Tier 1 Home Row (k=9) as a total damage-control shield.
-        finalK = 9; 
+        // Human Factor Fallback: Instead of forcing a restrictive 9-key home row,
+        // anchor them to the standard lowercase alphabet (k=26) to preserve muscle memory.
+        finalK = 26; 
       }
     }
   }
-  
+
   // Final bounds sanity safeguard
   finalK = Math.max(2, Math.min(finalK, KEYSET_POOL.length));
+  if (finalK > 9 && finalK < 26) {
+    finalK = 26;
+  }
   activateConfig(buildKeysetConfig(finalK, finalL));
 
   const finalN = Math.pow(finalK, finalL);
@@ -985,7 +1003,7 @@ function endCalibration() {
   document.getElementById('calib-final-L').textContent    = finalL;
   document.getElementById('calib-final-N').textContent    = finalN.toLocaleString();
   document.getElementById('calib-final-bits').textContent = Math.log2(finalN - 1).toFixed(2);
-  document.getElementById('calib-damped').textContent     = damped ? 'YES — verif error > 10%' : 'No';
+  document.getElementById('calib-damped').textContent     = damped ? 'Yes' : 'No';
   calibResultScreen.classList.remove('hidden');
   downloadCalibCSV(finalK, finalL, damped, verifTotal);
 }
