@@ -63,6 +63,18 @@ We tested configurations ranging from N = 4 to N = 3844:
 
 The 26-letter length-2 configuration produced the highest measured bit rate. The test was given to three people (Dana -- Emma, Chris -- Steven, and Irina -- Alice) who all performed best on two letter sequences. See **test mode** (press T from the start screen) to reproduce this comparison: the game cycles through all configurations in random order and exports results as a CSV.
 
+## What We Tried
+
+### Voice Recognition
+
+I explored using voice input as the selection modality, since you can speak much faster than you can type. In practice, it didn't work well because recognition latency was high and accuracy was unreliable enough that `Si` climbed quickly, dragging down the net score. Recognizing silence was not a problem as input start/end was registered when the user presses the space bar. Keyboard input was strictly faster and more accurate.
+
+### Grid Layout
+
+I also tested a 4×4 grid where each selection was some combination of cells. The hope was that this would allow a higher N without sacrificing speed. In practice, selecting from the grid was slower than typing letter sequences. Optimal key selection was at most 8, since I allowed users to press Shift to toggle which cells require selection.
+
+---
+
 ## Architecture
 
 | File           | Purpose                                                          |
