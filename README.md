@@ -1,84 +1,45 @@
 # BCI Bit Rate Maximizer
 
-A 60-second human-speed benchmark built to maximize **Bit Rate (B)** under the Shenoy et al. (2021) BCI evaluation formula.
+Maximize **B = log₂(N−1) · max(Sc−Si, 0) / t** — the Shenoy et al. (2021) BCI metric.
+
+Live: [bit-rate-mauve.vercel.app](https://bit-rate-mauve.vercel.app/) &nbsp;·&nbsp; Local: `./run.sh`
 
 ---
 
-## Quick Start
+## How it works
 
-```bash
-./run.sh
-```
+**SPACE** → 69s PRSO calibration → 60s scored run.
 
-Launches a Python HTTP server on `localhost:8000` and opens the app automatically. Or use [https://bit-rate-mauve.vercel.app/](https://bit-rate-mauve.vercel.app/)
+Each block shows a key sequence. Type it in order to clear it. Wrong key flashes red and resets the block. Preview blocks on the right let you read ahead.
 
----
-
-## How to Play
-
-1. A row of blocks appears. The **large glowing block** is your active target.
-2. Each block shows a 2-letter sequence (e.g., `K Q`). Type the letters in order.
-3. Correct: block clears instantly, next target appears.
-4. Wrong key: block flashes red, input resets, `Si` increments.
-5. Three smaller preview blocks to the right let you read ahead.
-6. Press **SPACE** to start. **T** to run test mode.
+**T** from the start screen runs test mode (all configs, exports CSV).
 
 ---
 
-## Scoring Formula
+## Calibration — PRSO
 
-```
-B = log2(N - 1) × max(Sc - Si, 0) / t
-
-N  = 650  (26×25 two-letter sequences, no repeated letters)
-t  = 60 s
-Sc = correct selections
-Si = incorrect selections
-```
+Four 15s harvest windows (k = 9 → 26 → 52 → 62) collect keystrokes-per-second and error rate at each keyset size. A Hick-Hyman fit (`T_key = a + b·log₂k`) and linear error model (`E_rate = c·k`) are then fitted, and a grid search over k = 2–66, L = 2–4 picks the (k, L) that maximizes predicted bit rate. A 5s verification window applies safety damping if error rate exceeds 10%. Results export as CSV.
 
 ---
 
-## Design Choices
+## Why k=26, L=2 is the baseline
 
-### Input Modality — Keyboard Letters
-
-The keyboard was chosen as the input modality because it is the high-bandwidth familiar to most everyone.  This minimizes the bottleneck between perception and execution.
-
-Arrow keys, number rows, and home-row subsets (ASDF + JKL;) were also tested. Letters outperformed all of them in practice — likely because the full alphabet benefits from years of overlearned motor programs that number or arrow layouts do not share.
-
-### Why N = 676
-
-Since, increasing N only results in a logarithmic increase in bit rate, whereas increasing S_c results in a linear increase in bit rate, the task required finding an optimal N such that plenty of information is encoded in a single selection without compromising accuracy/reaction time.
-
-We tested configurations ranging from N = 4 to N = 3844:
-
-| Config                       | N             | bits/sel       | Notes                                                                                         |
-| ---------------------------- | ------------- | -------------- | --------------------------------------------------------------------------------------------- |
-| 4 keys, len 1                | 4             | 1.58           | Low complexity/high accuracy, low information transmission, low performance                   |
-| 4 keys, len 2                | 16            | 3.91           | Low complexity/high accuracy, low information transmission, low performance                   |
-| 26 keys, len 1               | 26            | 4.64           | Low complexity/high accuracy medium information transmission, solid performance              |
-| **26 keys, len 2**     | **676** | **9.40** | **Medium complexity/high accuracy, high information transmission, highest performance** |
-| 52 keys (a–Z), len 2        | 2704          | 11.40          | High complexity/medium accuracy, high information transmission, medium performance            |
-| 62 keys (a–Z + 0–9), len 2 | 3844          | 11.91          | High complexity/low accuracy, high information transmission, medium performance               |
-
-The 26-letter length-2 configuration produced the highest measured bit rate. The test was given to three people (Dana -- Emma, Chris -- Steven, and Irina -- Alice) who all performed best on two letter sequences. See **test mode** (press T from the start screen) to reproduce this comparison: the game cycles through all configurations in random order and exports results as a CSV.
-
-## What We Tried
-
-### Voice Recognition
-
-I explored using voice input as the selection modality, since you can speak much faster than you can type. In practice, it didn't work well because recognition latency was high and accuracy was unreliable enough that `Si` climbed quickly, dragging down the net score. Recognizing silence was not a problem as input start/end was registered when the user presses the space bar. Keyboard input was strictly faster and more accurate.
-
-### Grid Layout
-
-I also tested a 4×4 grid where each selection was some combination of cells. The hope was that this would allow a higher N without sacrificing speed. In practice, selecting from the grid was slower than typing letter sequences. Optimal key selection was at most 8, since I allowed users to press Shift to toggle which cells require selection.
+Increasing N only adds log-scale bits; increasing Sc adds linearly. Two-letter sequences over the full alphabet (N = 676, ~9.4 bits/sel) hit the sweet spot — high enough information density without the accuracy penalty of larger or longer configs. The PRSO personalizes this per user.
 
 ---
 
-## Architecture
+## What we tried
 
-| File           | Purpose                                                          |
-| -------------- | ---------------------------------------------------------------- |
-| `index.html` | Layout, CSS, all visual styling. Zero dependencies.              |
-| `script.js`  | Game state machine, input handling, bit rate calculation, chart. |
-| `run.sh`     | Python HTTP server + auto browser open.                          |
+**Voice** — recognition latency and error rates were too high; net score was worse than keyboard.
+
+**Grid paths** — 4×4 cell-path selection was slower than letter sequences.
+
+---
+
+## Files
+
+| File | Purpose |
+|---|---|
+| `index.html` | Layout and CSS |
+| `script.js` | Game logic, PRSO engine, chart |
+| `run.sh` | Local server |

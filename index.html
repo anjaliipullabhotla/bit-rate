@@ -106,20 +106,22 @@
       50%      { box-shadow: 0 0 18px rgba(0,180,255,0.7); }
     }
 
-    /* final score card */
-    #score-screen .score-grid {
+    /* score / calibration result grids */
+    .score-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1rem 2rem;
       margin: 0.8rem 0;
     }
-    #score-screen .score-item { text-align: center; }
-    #score-screen .score-label { font-size: 0.75rem; color: var(--muted); }
-    #score-screen .score-value {
+    .score-item { text-align: center; }
+    .score-label { font-size: 0.75rem; color: var(--muted); }
+    .score-value {
       font-size: 2rem;
       font-weight: 700;
       color: var(--text);
     }
+    .score-value.accent { color: var(--accent); }
+    .score-value.gold   { color: var(--gold); }
     #score-screen .final-bps {
       font-size: 3.2rem;
       font-weight: 700;
@@ -295,22 +297,22 @@
       border-radius: 4px;
     }
 
-    /* test results table */
-    #test-results-table {
+    /* results tables (test mode + calibration) */
+    .results-table {
       border-collapse: collapse;
       font-size: 0.85rem;
       margin: 0.5rem 0;
       width: 100%;
       max-width: 520px;
     }
-    #test-results-table th, #test-results-table td {
+    .results-table th, .results-table td {
       padding: 0.45rem 0.8rem;
       text-align: right;
       border-bottom: 1px solid var(--border);
     }
-    #test-results-table th { color: var(--muted); font-weight: 400; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.08em; }
-    #test-results-table td:first-child, #test-results-table th:first-child { text-align: left; }
-    #test-results-table .bps-cell { color: var(--gold); font-weight: 700; }
+    .results-table th { color: var(--muted); font-weight: 400; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.08em; }
+    .results-table td:first-child, .results-table th:first-child { text-align: left; }
+    .results-table .bps-cell { color: var(--gold); font-weight: 700; }
 
     /* ── GRID MODE ──────────────────────────────── */
     .grid-block {
@@ -402,15 +404,13 @@
     <!-- START SCREEN -->
     <div class="overlay" id="start-screen">
       <h1>ComboStack</h1>
-      <p>Each block shows a sequence of keys — type them in order to clear it.<br>
-         Wrong key: the block flashes red and your input resets.<br>
-         Read the preview blocks above to stay one step ahead.</p>
-      <p id="mode-info" style="color:var(--text);font-size:0.82rem;"></p>
-      <div class="spacebar-hint">Press SPACE to start</div>
-      <p style="color:var(--muted);font-size:0.78rem;">3-second countdown before timer begins.</p>
-      <p style="color:var(--muted);font-size:0.78rem;margin-top:0.5rem;">
-        Press <strong style="color:var(--text)">T</strong> (test mode) to
-        play all variations and downloads a CSV with your scores for each.
+      <p>Type the key sequence shown in each block to clear it. Wrong key flashes red and resets.<br>
+         Read the preview blocks to stay ahead.</p>
+      <div class="spacebar-hint">Press SPACE to Calibrate &amp; Play</div>
+      <p style="color:var(--muted);font-size:0.75rem;max-width:380px;text-align:center;line-height:1.6;">
+        Calibration finds your optimal keyset (k) and sequence length (L),
+        then locks the 60s scored run to that config.<br>
+        <strong style="color:var(--text)">T</strong> — test mode &nbsp;·&nbsp; exports CSV
       </p>
     </div>
 
@@ -448,6 +448,61 @@
       <div class="spacebar-hint">Press SPACE to restart</div>
     </div>
 
+    <!-- CALIBRATION RESULT SCREEN (PRSO debug report) -->
+    <div class="overlay hidden" id="calib-result-screen">
+      <h1>PRSO Complete</h1>
+      <p style="color:var(--muted);font-size:0.75rem;text-align:center;max-width:500px;">
+        4×15s harvest windows · Hick-Hyman fit · error model · grid search k=2–66, L=2–4 · 5s verification
+      </p>
+      <div class="score-grid" style="margin-top:0.4rem;grid-template-columns:1fr 1fr 1fr;max-width:520px;gap:0.7rem 1.4rem;">
+        <div class="score-item">
+          <div class="score-label">Intercept a (s)</div>
+          <div class="score-value" style="font-size:1.3rem;" id="calib-param-a">—</div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">Hick slope b</div>
+          <div class="score-value" style="font-size:1.3rem;" id="calib-param-b">—</div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">Error slope c</div>
+          <div class="score-value" style="font-size:1.3rem;" id="calib-param-c">—</div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">Verif error rate</div>
+          <div class="score-value" style="font-size:1.3rem;" id="calib-verif-err">—</div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">Grid k*</div>
+          <div class="score-value accent" id="calib-opt-k">—</div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">Grid L*</div>
+          <div class="score-value" id="calib-opt-L">—</div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">Final k</div>
+          <div class="score-value accent" id="calib-final-k">—</div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">Final L</div>
+          <div class="score-value" id="calib-final-L">—</div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">N (alphabet)</div>
+          <div class="score-value" id="calib-final-N">—</div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">bits / selection</div>
+          <div class="score-value gold" id="calib-final-bits">—</div>
+        </div>
+        <div class="score-item" style="grid-column:span 2;">
+          <div class="score-label">Safety damped?</div>
+          <div class="score-value" style="font-size:1rem;" id="calib-damped">—</div>
+        </div>
+      </div>
+      <div class="spacebar-hint" style="margin-top:0.6rem;">Press SPACE to start 60s scored run</div>
+    </div>
+
     <!-- INTER-TRIAL SCREEN -->
     <div class="overlay hidden" id="intertrial-screen">
       <div id="intertrial-progress" style="font-size:0.8rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;"></div>
@@ -459,7 +514,7 @@
     <!-- TEST COMPLETE SCREEN -->
     <div class="overlay hidden" id="test-complete-screen">
       <h1>Test Complete</h1>
-      <table id="test-results-table">
+      <table id="test-results-table" class="results-table">
         <thead>
           <tr><th>Config</th><th>N</th><th>bits/sel</th><th>Sc</th><th>Si</th><th>Acc</th><th>bps</th></tr>
         </thead>
@@ -501,12 +556,12 @@
     </div>
 
     <div class="metric-card">
-      <div class="metric-label">Current Bit Rate</div>
+      <div class="metric-label" id="bps-label">Current Bit Rate</div>
       <div class="metric-value gold" id="bps-value">0.00 bps</div>
     </div>
 
     <div class="metric-card" id="bitrate-card">
-      <div class="metric-label">Bit Rate History</div>
+      <div class="metric-label" id="chart-label">Bit Rate History</div>
       <div id="chart-container">
         <canvas id="bitrate-canvas"></canvas>
       </div>
