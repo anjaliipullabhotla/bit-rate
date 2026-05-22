@@ -10,6 +10,15 @@ const TEST_CONFIGS = [
     DIR_CLASS:  Object.fromEntries('abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, 'dir-letter'])),
   },
   {
+    label:     '4×4 grid',
+    SEQ_LENGTH: 1,
+    gridMode:   true,
+    horizMode:  false,
+    KEY_MAP:    Object.fromEntries([...'1234qwerasdfzxcv'].map(c => [c, c])),
+    DIR_CLASS:  Object.fromEntries([...'1234qwerasdfzxcv'].map(c => [c, 'dir-letter'])),
+    GRID_ROWS:  [['1','2','3','4'],['q','w','e','r'],['a','s','d','f'],['z','x','c','v']],
+  },
+  {
     label:      '12 (×8)',
     SEQ_LENGTH: 8,
     horizMode:  true,
@@ -145,6 +154,7 @@ const finalAcc  = document.getElementById('final-acc');
 
 // ── CONFIG ACTIVATION ──────────────────────────────────────────────────────────
 function configN(cfg) {
+  if (cfg.gridMode) return Math.pow(2, Object.keys(cfg.KEY_MAP).length) - 1;
   const k = Object.keys(cfg.KEY_MAP).length;
   const L = cfg.SEQ_LENGTH;
   return Math.pow(k, L);
@@ -155,7 +165,7 @@ function activateConfig(cfg) {
   KEY_DIR_CLASS = cfg.DIR_CLASS;
   N             = configN(cfg);
   INFO_DENSITY  = Math.log2(N - 1);
-  CONFIG        = { DURATION, SEQ_LENGTH: cfg.SEQ_LENGTH, QUEUE_SIZE, KEY_MAP: cfg.KEY_MAP, horizMode: cfg.horizMode };
+  CONFIG        = { DURATION, SEQ_LENGTH: cfg.SEQ_LENGTH, QUEUE_SIZE, KEY_MAP: cfg.KEY_MAP, horizMode: cfg.horizMode, gridMode: !!cfg.gridMode, GRID_ROWS: cfg.GRID_ROWS || null };
 
   stackCol.classList.toggle('horiz-mode', !!cfg.horizMode);
   stackCol.style.setProperty('--seq-len', cfg.SEQ_LENGTH);
@@ -166,15 +176,15 @@ function activateConfig(cfg) {
 
 // ── UTILITY ────────────────────────────────────────────────────────────────────
 function randomSequence() {
+  if (CONFIG.gridMode) {
+    let lit;
+    do { lit = KEYS.filter(() => Math.random() < 0.5); } while (lit.length === 0);
+    return lit;
+  }
   const seq = [];
   for (let i = 0; i < CONFIG.SEQ_LENGTH; i++) {
-    // let sym;
     const randomKey = KEYS[Math.floor(Math.random() * KEYS.length)];
-    const sym = CONFIG.KEY_MAP[randomKey];
-    // do {
-    //   sym = CONFIG.KEY_MAP[KEYS[Math.floor(Math.random() * KEYS.length)]];
-    // } while (seq.length > 0 && sym === seq[seq.length - 1]);
-    seq.push(sym);
+    seq.push(CONFIG.KEY_MAP[randomKey]);
   }
   return seq;
 }
@@ -281,6 +291,18 @@ function renderStack() {
   stackCol.innerHTML = '';
   stackCol.classList.toggle('horiz-mode', !!CONFIG.horizMode);
 
+  if (CONFIG.gridMode) {
+    const active = state.blockQueue[0];
+    if (!active) return;
+    const activeEl = makeGridBlock(
+      gridComplement ? KEYS.filter(k => !active.includes(k)) : active,
+      true
+    );
+    activeEl.id = 'active-block';
+    stackCol.appendChild(activeEl);
+    return;
+  }
+
   for (let i = QUEUE_SIZE - 1; i >= 1; i--) {
     const seq = state.blockQueue[i];
     if (!seq) continue;
@@ -352,6 +374,64 @@ function handleKeyPress(key) {
   }
 }
 
+// ── GRID MODE ──────────────────────────────────────────────────────────────────
+let gridPressed = new Set(), gridComplement = false;
+
+function gridEffectiveTarget() {
+  const targetSet = new Set(state.blockQueue[0]);
+  return gridComplement ? new Set(KEYS.filter(k => !targetSet.has(k))) : targetSet;
+}
+
+function onGridKeyDown(key) {
+  if (state.phase !== 'running') return;
+  if (!state.blockQueue[0]) return;
+  if (gridPressed.has(key)) return;
+
+  const effectiveTarget = gridEffectiveTarget();
+
+  if (!effectiveTarget.has(key)) {
+    state.Si++;
+    gridPressed.clear(); gridComplement = false;
+    state.inputBuffer = [];
+    updateDashboard();
+    flashActiveBlock('error', () => renderStack());
+    return;
+  }
+
+  gridPressed.add(key);
+  renderStack();
+
+  if (gridPressed.size === effectiveTarget.size) {
+    state.Sc++;
+    state.blockQueue.shift();
+    fillQueue();
+    gridPressed.clear();
+    state.inputBuffer = [];
+    updateDashboard();
+    renderStack();
+  }
+}
+
+function makeGridBlock(litKeys, isActive) {
+  const litSet = new Set(litKeys);
+  const outer = document.createElement('div');
+  outer.className = 'grid-block ' + (isActive ? 'active' : 'preview') + (isActive && gridComplement ? ' flipped' : '');
+  CONFIG.GRID_ROWS.forEach(row => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'grid-row';
+    row.forEach(key => {
+      const cell = document.createElement('div');
+      const isLit     = litSet.has(key);
+      const isPressed = isActive && gridPressed.has(key);
+      cell.className = 'grid-cell' + (isLit ? ' lit' : '') + (isPressed ? ' pressed' : '');
+      if (isActive) cell.textContent = key.toUpperCase();
+      rowEl.appendChild(cell);
+    });
+    outer.appendChild(rowEl);
+  });
+  return outer;
+}
+
 // ── DASHBOARD ──────────────────────────────────────────────────────────────────
 function updateDashboard() {
   const elapsed = startTimestamp ? (performance.now() - startTimestamp) / 1000 : 0;
@@ -408,6 +488,7 @@ function startGame() {
     Sc: 0, Si: 0, inputBuffer: [], blockQueue: [], bitRateHistory: [],
   };
 
+  gridPressed.clear(); gridComplement = false;
   stackCol.innerHTML = '';
   updateDashboard(); resizeCanvas();
   [startScreen, scoreScreen, intertrialScreen, testCompleteScreen].forEach(s => s.classList.add('hidden'));
@@ -521,7 +602,19 @@ window.addEventListener('keydown', (e) => {
     return;
   }
 
-  if (CONFIG && CONFIG.KEY_MAP[e.key] !== undefined) {
+  if (CONFIG && CONFIG.gridMode) {
+    if (e.key === 'Shift' && state.phase === 'running') {
+      gridComplement = !gridComplement;
+      renderStack();
+      return;
+    }
+    const gridKey = e.key.toLowerCase();
+    if (!e.repeat && CONFIG.KEY_MAP[gridKey] !== undefined) {
+      e.preventDefault();
+      if (state.phase === 'running') onGridKeyDown(gridKey);
+      return;
+    }
+  } else if (CONFIG && CONFIG.KEY_MAP[e.key] !== undefined) {
     e.preventDefault();
     if (state.phase === 'running') handleKeyPress(e.key);
     return;
@@ -533,6 +626,7 @@ window.addEventListener('keydown', (e) => {
     return;
   }
 });
+
 
 // ── RESIZE ─────────────────────────────────────────────────────────────────────
 window.addEventListener('resize', resizeCanvas);

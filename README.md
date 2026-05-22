@@ -10,7 +10,7 @@ A 60-second human-speed benchmark built to maximize **Bit Rate (B)** under the S
 ./run.sh
 ```
 
-Launches a Python HTTP server on `localhost:8000` and opens the app automatically.
+Launches a Python HTTP server on `localhost:8000` and opens the app automatically. Or visit: https://bit-rate-mauve.vercel.app/
 
 ---
 
