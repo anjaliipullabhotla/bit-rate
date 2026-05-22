@@ -312,6 +312,77 @@
     #test-results-table td:first-child, #test-results-table th:first-child { text-align: left; }
     #test-results-table .bps-cell { color: var(--gold); font-weight: 700; }
 
+    /* ── GRID MODE ──────────────────────────────── */
+    .grid-block {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 10px;
+      border-radius: 10px;
+      background: var(--surface2);
+    }
+    .grid-block.preview {
+      border: 1px solid var(--border);
+      opacity: 0.65;
+      gap: 3px;
+      padding: 6px;
+    }
+    .grid-block.preview:first-child { opacity: 0.85; }
+    .grid-block.active {
+      border: 2px solid var(--accent);
+      box-shadow: var(--glow), inset 0 0 30px rgba(0,180,255,0.07);
+    }
+    .grid-block.active.flipped {
+      border-color: var(--gold);
+      box-shadow: 0 0 18px rgba(255,214,0,0.55), inset 0 0 30px rgba(255,214,0,0.05);
+    }
+    .grid-row { display: flex; gap: 5px; }
+    .grid-block.preview .grid-row { gap: 3px; }
+    .grid-cell {
+      display: flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px;
+      border-radius: 5px;
+      font-size: 0.65rem; font-weight: 700;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .grid-block.preview .grid-cell {
+      width: 13px; height: 13px;
+      border-radius: 2px;
+      font-size: 0;
+      border: none;
+    }
+    .grid-cell.lit {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+      box-shadow: 0 0 8px rgba(0,180,255,0.6);
+    }
+    .grid-cell.lit.pressed {
+      background: var(--green);
+      border-color: var(--green);
+      box-shadow: 0 0 10px rgba(0,230,118,0.7);
+      color: #000;
+    }
+    .grid-block.flipped .grid-cell.lit {
+      background: var(--gold);
+      border-color: var(--gold);
+      box-shadow: 0 0 8px rgba(255,214,0,0.6);
+      color: #000;
+    }
+    .grid-block.flipped .grid-cell.lit.pressed {
+      background: var(--green);
+      border-color: var(--green);
+      box-shadow: 0 0 10px rgba(0,230,118,0.7);
+    }
+    .grid-block.preview .grid-cell.lit { box-shadow: none; }
+    .grid-block.error {
+      border-color: var(--red) !important;
+      box-shadow: 0 0 20px rgba(255,23,68,0.5) !important;
+      animation: shake 0.18s ease;
+    }
+
     /* title above stack */
     #game-title {
       font-size: 0.72rem;
