@@ -496,6 +496,117 @@ function downloadCSV() {
   a.click();
 }
 
+// ── AUDIO / WEBSOCKET ──────────────────────────────────────────────────────────
+const WS_URL = 'ws://localhost:8765';
+let ws          = null;
+let audioCtx    = null;
+let recorder    = null;
+let isRecording = false;
+let pcmChunks   = [];
+let audioReady  = false;
+let audioInitP  = null;
+
+function connectWS() {
+  ws = new WebSocket(WS_URL);
+  ws.binaryType = 'arraybuffer';
+  ws.onopen    = () => console.log('[ws] connected');
+  ws.onclose   = () => { ws = null; setTimeout(connectWS, 2000); };
+  ws.onerror   = () => {};
+  ws.onmessage = (e) => handleTranscription(e.data);
+}
+
+async function initAudio() {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+  audioCtx = new AudioContext();
+  const source    = audioCtx.createMediaStreamSource(stream);
+  const silencer  = audioCtx.createGain();
+  silencer.gain.value = 0;                // prevent mic bleed to speakers
+  recorder = audioCtx.createScriptProcessor(4096, 1, 1);
+  recorder.onaudioprocess = (ev) => {
+    if (isRecording) pcmChunks.push(new Float32Array(ev.inputBuffer.getChannelData(0)));
+  };
+  source.connect(recorder);
+  recorder.connect(silencer);
+  silencer.connect(audioCtx.destination); // destination connection required for onaudioprocess to fire
+}
+
+async function ensureAudio() {
+  if (audioReady) return;
+  if (!audioInitP) {
+    audioInitP = initAudio()
+      .then(() => { audioReady = true; })
+      .catch(err => console.warn('[mic] unavailable:', err));
+  }
+  return audioInitP;
+}
+
+function encodeWAV(samples, sampleRate) {
+  const buf = new ArrayBuffer(44 + samples.length * 2);
+  const v   = new DataView(buf);
+  const str = (off, s) => [...s].forEach((c, i) => v.setUint8(off + i, c.charCodeAt(0)));
+  str(0, 'RIFF');  v.setUint32(4,  36 + samples.length * 2, true);
+  str(8, 'WAVE'); str(12, 'fmt ');
+  v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true);               // PCM
+  v.setUint16(22, 1, true);               // mono
+  v.setUint32(24, sampleRate, true);
+  v.setUint32(28, sampleRate * 2, true);  // byte rate
+  v.setUint16(32, 2, true);              // block align
+  v.setUint16(34, 16, true);             // bits/sample
+  str(36, 'data'); v.setUint32(40, samples.length * 2, true);
+  let off = 44;
+  for (const x of samples) {
+    v.setInt16(off, x < 0 ? x * 0x8000 : x * 0x7FFF, true);
+    off += 2;
+  }
+  return buf;
+}
+
+function startRecording() {
+  if (isRecording || !audioCtx) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  isRecording = true;
+  pcmChunks   = [];
+  stackCol.classList.add('hot');
+}
+
+function stopRecordingAndSend() {
+  if (!isRecording) return;
+  isRecording = false;
+  stackCol.classList.remove('hot');
+  if (!pcmChunks.length || !ws || ws.readyState !== WebSocket.OPEN) {
+    pcmChunks = [];
+    return;
+  }
+  const total    = pcmChunks.reduce((n, c) => n + c.length, 0);
+  const combined = new Float32Array(total);
+  let off = 0;
+  for (const c of pcmChunks) { combined.set(c, off); off += c.length; }
+  ws.send(encodeWAV(combined, audioCtx.sampleRate));
+  pcmChunks = [];
+}
+
+function handleTranscription(text) {
+  if (state.phase !== 'running') return;
+  const active = state.blockQueue[0];
+  if (!active) return;
+  const spoken   = text.toLowerCase().replace(/[^a-z]/g, '');
+  const expected = active.join('').toLowerCase();
+  if (spoken === expected) {
+    state.Sc++;
+    state.blockQueue.shift();
+    fillQueue();
+    state.inputBuffer = [];
+    updateDashboard();
+    renderStack();
+  } else {
+    state.Si++;
+    state.inputBuffer = [];
+    updateDashboard();
+    flashActiveBlock('error', () => renderStack());
+  }
+}
+
 // ── INPUT HANDLING ─────────────────────────────────────────────────────────────
 window.addEventListener('keydown', (e) => {
   if ((e.key === 't' || e.key === 'T') && (state.phase === 'idle' || state.phase === 'done')) {
@@ -511,9 +622,20 @@ window.addEventListener('keydown', (e) => {
 
   if (e.code === 'Space') {
     e.preventDefault();
-    if (state.phase === 'idle' || state.phase === 'done') startGame();
+    if (state.phase === 'running' && !e.repeat) {
+      startRecording();
+      return;
+    }
+    if (state.phase === 'idle' || state.phase === 'done') {
+      ensureAudio(); // fire-and-forget — resolves during the 3-s countdown
+      startGame();
+    }
     return;
   }
+});
+
+window.addEventListener('keyup', (e) => {
+  if (e.code === 'Space') stopRecordingAndSend();
 });
 
 // ── RESIZE ─────────────────────────────────────────────────────────────────────
@@ -522,3 +644,4 @@ window.addEventListener('resize', resizeCanvas);
 // ── BOOT ───────────────────────────────────────────────────────────────────────
 activateConfig(TEST_CONFIGS[0]);
 resizeCanvas();
+connectWS();
