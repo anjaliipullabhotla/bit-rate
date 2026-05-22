@@ -10,7 +10,7 @@ A 60-second human-speed benchmark built to maximize **Bit Rate (B)** under the S
 ./run.sh
 ```
 
-Launches a Python HTTP server on `localhost:8000` and opens the app automatically.
+Launches a Python HTTP server on `localhost:8000` and opens the app automatically. Or use [https://bit-rate-mauve.vercel.app/](https://bit-rate-mauve.vercel.app/)
 
 ---
 
@@ -21,7 +21,7 @@ Launches a Python HTTP server on `localhost:8000` and opens the app automaticall
 3. Correct: block clears instantly, next target appears.
 4. Wrong key: block flashes red, input resets, `Si` increments.
 5. Three smaller preview blocks to the right let you read ahead.
-6. Press **SPACE** to start. **T** to run test mode (downloads CSV).
+6. Press **SPACE** to start. **T** to run test mode.
 
 ---
 
@@ -48,7 +48,7 @@ Arrow keys, number rows, and home-row subsets (ASDF + JKL;) were also tested. Le
 
 ### Why N = 676
 
-Since, increasing N only results in a logarithmic increase in bit rate, whereas increasing S_c results in a linear increase in bit rate, the task required finding an optimal N such that plenty of information is encoded in a single selection without compromising accuracy/reaction time. 
+Since, increasing N only results in a logarithmic increase in bit rate, whereas increasing S_c results in a linear increase in bit rate, the task required finding an optimal N such that plenty of information is encoded in a single selection without compromising accuracy/reaction time.
 
 We tested configurations ranging from N = 4 to N = 3844:
 
