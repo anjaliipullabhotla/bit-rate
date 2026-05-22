@@ -10,6 +10,20 @@ const TEST_CONFIGS = [
     DIR_CLASS:  Object.fromEntries('abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, 'dir-letter'])),
   },
   {
+    label:      '12 (×8)',
+    SEQ_LENGTH: 8,
+    horizMode:  true,
+    KEY_MAP:    Object.fromEntries('12'.split('').map(c => [c, c])),
+    DIR_CLASS:  Object.fromEntries('12'.split('').map(c => [c, 'dir-letter'])),
+  },
+  {
+    label:      'a - z (×3)',
+    SEQ_LENGTH: 3,
+    horizMode:  true,
+    KEY_MAP:    Object.fromEntries('abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, c])),
+    DIR_CLASS:  Object.fromEntries('abcdefghijklmnopqrstuvwxyz'.split('').map(c => [c, 'dir-letter'])),
+  },
+  {
     label:      'Arrows ↑↓←→',
     SEQ_LENGTH: 2,
     KEY_MAP:    { 'ArrowUp':'↑','ArrowDown':'↓','ArrowLeft':'←','ArrowRight':'→' },
@@ -133,8 +147,7 @@ const finalAcc  = document.getElementById('final-acc');
 function configN(cfg) {
   const k = Object.keys(cfg.KEY_MAP).length;
   const L = cfg.SEQ_LENGTH;
-  if (L <= 1) return k;
-  return k * Math.pow(k - 1, L - 1);
+  return Math.pow(k, L);
 }
 
 function activateConfig(cfg) {
@@ -145,6 +158,7 @@ function activateConfig(cfg) {
   CONFIG        = { DURATION, SEQ_LENGTH: cfg.SEQ_LENGTH, QUEUE_SIZE, KEY_MAP: cfg.KEY_MAP, horizMode: cfg.horizMode };
 
   stackCol.classList.toggle('horiz-mode', !!cfg.horizMode);
+  stackCol.style.setProperty('--seq-len', cfg.SEQ_LENGTH);
 
   document.getElementById('mode-info').textContent =
     `${cfg.label}  |  N=${N}  |  ~${INFO_DENSITY.toFixed(2)} bits/sel  |  60 s`;
@@ -154,10 +168,12 @@ function activateConfig(cfg) {
 function randomSequence() {
   const seq = [];
   for (let i = 0; i < CONFIG.SEQ_LENGTH; i++) {
-    let sym;
-    do {
-      sym = CONFIG.KEY_MAP[KEYS[Math.floor(Math.random() * KEYS.length)]];
-    } while (seq.length > 0 && sym === seq[seq.length - 1]);
+    // let sym;
+    const randomKey = KEYS[Math.floor(Math.random() * KEYS.length)];
+    const sym = CONFIG.KEY_MAP[randomKey];
+    // do {
+    //   sym = CONFIG.KEY_MAP[KEYS[Math.floor(Math.random() * KEYS.length)]];
+    // } while (seq.length > 0 && sym === seq[seq.length - 1]);
     seq.push(sym);
   }
   return seq;
@@ -392,9 +408,11 @@ function startGame() {
     Sc: 0, Si: 0, inputBuffer: [], blockQueue: [], bitRateHistory: [],
   };
 
-  fillQueue(); renderStack(); updateDashboard(); resizeCanvas();
+  stackCol.innerHTML = '';
+  updateDashboard(); resizeCanvas();
   [startScreen, scoreScreen, intertrialScreen, testCompleteScreen].forEach(s => s.classList.add('hidden'));
   runCountdown(() => {
+    fillQueue(); renderStack();
     state.phase = 'running';
     startTick();
   });

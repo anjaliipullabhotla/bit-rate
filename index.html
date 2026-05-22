@@ -130,6 +130,7 @@
 
     /* ── STACK COLUMN ───────────────────────────── */
     #stack-col {
+      --seq-len: 2;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -140,7 +141,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 14px;
+      gap: clamp(4px, calc(18px - var(--seq-len) * 2px), 14px);
       border-radius: 10px;
       font-weight: 700;
     }
@@ -230,14 +231,14 @@
       gap: 10px;
     }
     #stack-col.horiz-mode .block.active {
-      width: 110px;
+      width: clamp(90px, calc(80px + var(--seq-len) * 16px), 420px);
       height: 110px;
-      font-size: 3rem;
+      font-size: clamp(1.3rem, calc(3.7rem - var(--seq-len) * 0.3rem), 3rem);
     }
     #stack-col.horiz-mode .block.preview {
-      width: 60px;
+      width: clamp(40px, calc(36px + var(--seq-len) * 8px), 200px);
       height: 60px;
-      font-size: 1.4rem;
+      font-size: clamp(0.8rem, calc(1.8rem - var(--seq-len) * 0.12rem), 1.4rem);
     }
 
     /* ── RIGHT PANEL WIDGETS ─────────────────────── */
